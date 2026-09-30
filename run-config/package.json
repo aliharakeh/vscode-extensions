@@ -1,0 +1,288 @@
+{
+  "name": "run-config",
+  "displayName": "Run Config",
+  "description": "Run scripts from npm, yarn, pnpm and bun projects from the sidebar, and save customized run configurations.",
+  "version": "0.0.1",
+  "publisher": "trinov",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./extension.js",
+  "activationEvents": [],
+  "contributes": {
+    "configuration": {
+      "title": "Run Config",
+      "properties": {
+        "runConfig.configurations": {
+          "type": "array",
+          "default": [],
+          "description": "Named run configurations.",
+          "items": {
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "description": "Either a single command (\"bin\"/\"command\"), or a \"parallel\" list of commands started together.",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Label shown in the sidebar, quick pick and terminal tab."
+              },
+              "bin": {
+                "type": "string",
+                "description": "Executable path or command name, e.g. \"node\", \"./node_modules/.bin/vite\" or \"${workspaceFolder}/tools/run.sh\". Relative paths resolve against \"cwd\". Quoted automatically if it contains spaces."
+              },
+              "args": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                ],
+                "description": "Arguments for \"bin\". A string is passed verbatim; an array has each item quoted as needed."
+              },
+              "command": {
+                "type": "string",
+                "description": "Full shell command. Used when \"bin\" is not set; \"args\" are still appended."
+              },
+              "before": {
+                "type": "string",
+                "description": "Command to run first. The main command only runs if this succeeds."
+              },
+              "cwd": {
+                "type": "string",
+                "description": "Working directory. Supports ${workspaceFolder}. Defaults to the workspace root."
+              },
+              "env": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "description": "Environment variables for the terminal (applies to \"before\" too). Values support ${workspaceFolder}."
+              },
+              "parallel": {
+                "type": "array",
+                "description": "Commands to start at the same time, each in its own terminal.",
+                "items": {
+                  "type": "object",
+                  "anyOf": [
+                    {
+                      "required": [
+                        "bin"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "command"
+                      ]
+                    }
+                  ],
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "Label shown in the sidebar, quick pick and terminal tab."
+                    },
+                    "bin": {
+                      "type": "string",
+                      "description": "Executable path or command name, e.g. \"node\", \"./node_modules/.bin/vite\" or \"${workspaceFolder}/tools/run.sh\". Relative paths resolve against \"cwd\". Quoted automatically if it contains spaces."
+                    },
+                    "args": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      ],
+                      "description": "Arguments for \"bin\". A string is passed verbatim; an array has each item quoted as needed."
+                    },
+                    "command": {
+                      "type": "string",
+                      "description": "Full shell command. Used when \"bin\" is not set; \"args\" are still appended."
+                    },
+                    "before": {
+                      "type": "string",
+                      "description": "Command to run first. The main command only runs if this succeeds."
+                    },
+                    "cwd": {
+                      "type": "string",
+                      "description": "Working directory. Supports ${workspaceFolder}. Defaults to the workspace root."
+                    },
+                    "env": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "description": "Environment variables for the terminal (applies to \"before\" too). Values support ${workspaceFolder}."
+                    }
+                  }
+                }
+              }
+            },
+            "anyOf": [
+              {
+                "required": [
+                  "bin"
+                ]
+              },
+              {
+                "required": [
+                  "command"
+                ]
+              },
+              {
+                "required": [
+                  "parallel"
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "runConfig.pick",
+        "title": "Run Config: Run Configuration..."
+      },
+      {
+        "command": "runConfig.add",
+        "title": "Run Config: Add Run Configuration...",
+        "icon": "$(add)"
+      },
+      {
+        "command": "runConfig.runParallel",
+        "title": "Run in Parallel",
+        "category": "Run Config",
+        "icon": "$(run-all)"
+      },
+      {
+        "command": "runConfig.saveGroup",
+        "title": "Save as Parallel Group",
+        "category": "Run Config",
+        "icon": "$(save-all)"
+      },
+      {
+        "command": "runConfig.edit",
+        "title": "Run Config: Edit Configurations",
+        "icon": "$(gear)"
+      },
+      {
+        "command": "runConfig.run",
+        "title": "Run",
+        "icon": "$(play)"
+      },
+      {
+        "command": "runConfig.delete",
+        "title": "Delete",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "runConfig.refresh",
+        "title": "Refresh",
+        "icon": "$(refresh)"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "runConfig",
+          "title": "Run Config",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "runConfig": [
+        {
+          "id": "runConfig.view",
+          "name": "Run Configurations",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "runConfig.view",
+        "contents": "No package.json with scripts found in this workspace, and no saved configurations.\n[Add Run Configuration](command:runConfig.add)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "runConfig.add",
+          "when": "view == runConfig.view",
+          "group": "navigation@1"
+        },
+        {
+          "command": "runConfig.runParallel",
+          "when": "view == runConfig.view",
+          "group": "navigation@2"
+        },
+        {
+          "command": "runConfig.edit",
+          "when": "view == runConfig.view",
+          "group": "navigation@3"
+        },
+        {
+          "command": "runConfig.refresh",
+          "when": "view == runConfig.view",
+          "group": "navigation@4"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "runConfig.run",
+          "when": "view == runConfig.view && viewItem =~ /^(script|saved)$/",
+          "group": "inline@1"
+        },
+        {
+          "command": "runConfig.add",
+          "when": "view == runConfig.view && viewItem =~ /^(script|project)$/",
+          "group": "inline@2"
+        },
+        {
+          "command": "runConfig.delete",
+          "when": "view == runConfig.view && viewItem == saved",
+          "group": "inline@2"
+        },
+        {
+          "command": "runConfig.runParallel",
+          "when": "view == runConfig.view && viewItem =~ /^(script|saved)$/",
+          "group": "parallel@1"
+        },
+        {
+          "command": "runConfig.saveGroup",
+          "when": "view == runConfig.view && viewItem =~ /^(script|saved)$/",
+          "group": "parallel@2"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "runConfig.run",
+          "when": "false"
+        },
+        {
+          "command": "runConfig.delete",
+          "when": "false"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "build": "npx --yes @vscode/vsce package --allow-missing-repository"
+  }
+}
