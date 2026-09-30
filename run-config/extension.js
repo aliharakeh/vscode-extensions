@@ -1,8 +1,8 @@
-const vscode = require('vscode');
-const path = require('path');
-const { discoverProjects, scriptArgs } = require('./node-projects');
-const { mainCommand, fullCommand, isRunnable, expandSpec, parseEnvLines, describe } = require('./command');
-const { openSetup } = require('./setup-panel');
+import * as vscode from 'vscode';
+import path from 'path';
+import { discoverProjects, scriptArgs } from './node-projects.js';
+import { mainCommand, fullCommand, isRunnable, expandSpec, parseEnvLines, describe } from './command.js';
+import { openSetup } from './setup-panel.js';
 
 // ---- saved configurations (runConfig.configurations) ----
 
@@ -313,4 +313,4 @@ function activate(context) {
 
 function deactivate() {}
 
-module.exports = { activate, deactivate };
+export { activate, deactivate };

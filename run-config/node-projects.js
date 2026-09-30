@@ -1,6 +1,6 @@
-const vscode = require('vscode');
-const fs = require('fs');
-const path = require('path');
+import * as vscode from 'vscode';
+import fs from 'fs';
+import path from 'path';
 
 const MANAGERS = ['npm', 'yarn', 'pnpm', 'bun'];
 const LOCKFILES = [
@@ -58,4 +58,4 @@ function scriptArgs(pm, script, args = '') {
   return `run ${name}${sep}${args}`;
 }
 
-module.exports = { discoverProjects, scriptArgs };
+export { discoverProjects, scriptArgs };

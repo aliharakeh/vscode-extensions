@@ -74,4 +74,4 @@ function describe(spec) {
   return lines.join('\n');
 }
 
-module.exports = { mainCommand, fullCommand, isRunnable, expandSpec, parseEnvLines, describe };
+export { mainCommand, fullCommand, isRunnable, expandSpec, parseEnvLines, describe };

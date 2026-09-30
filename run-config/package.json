@@ -3,7 +3,6 @@
   "displayName": "Run Config",
   "description": "Run scripts from npm, yarn, pnpm and bun projects from the sidebar, and save customized run configurations.",
   "version": "0.0.1",
-  "publisher": "trinov",
   "license": "MIT",
   "engines": {
     "vscode": "^1.85.0"
@@ -11,7 +10,8 @@
   "categories": [
     "Other"
   ],
-  "main": "./extension.js",
+  "main": "./out/extension.cjs",
+  "type": "module",
   "activationEvents": [],
   "contributes": {
     "configuration": {
@@ -283,6 +283,7 @@
     }
   },
   "scripts": {
-    "build": "npx --yes @vscode/vsce package --allow-missing-repository"
+    "bundle": "esbuild extension.js --bundle --platform=node --format=cjs --external:vscode --outfile=out/extension.cjs",
+    "build": "npm run bundle && npx --yes @vscode/vsce package --allow-missing-repository --no-dependencies --out ../dist"
   }
 }

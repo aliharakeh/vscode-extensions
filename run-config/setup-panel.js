@@ -1,5 +1,5 @@
-const vscode = require('vscode');
-const crypto = require('crypto');
+import * as vscode from 'vscode';
+import crypto from 'crypto';
 
 let panel;
 
@@ -241,4 +241,4 @@ const PAGE = String.raw`<!DOCTYPE html>
 </body>
 </html>`;
 
-module.exports = { openSetup };
+export { openSetup };
