@@ -1,7 +1,7 @@
 {
   "name": "run-config",
   "displayName": "Run Config",
-  "description": "Run scripts from npm, yarn, pnpm and bun projects from the sidebar, and save customized run configurations.",
+  "description": "Run scripts from npm, yarn, pnpm and bun projects and Spring Boot applications from the sidebar, and save customized run configurations.",
   "version": "0.0.1",
   "license": "MIT",
   "engines": {
@@ -194,6 +194,31 @@
         "command": "runConfig.refresh",
         "title": "Refresh",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "runConfig.agent.list",
+        "title": "Agent: List",
+        "category": "Run Config"
+      },
+      {
+        "command": "runConfig.agent.run",
+        "title": "Agent: Run",
+        "category": "Run Config"
+      },
+      {
+        "command": "runConfig.agent.add",
+        "title": "Agent: Add",
+        "category": "Run Config"
+      },
+      {
+        "command": "runConfig.agent.saveGroup",
+        "title": "Agent: Save Group",
+        "category": "Run Config"
+      },
+      {
+        "command": "runConfig.agent.remove",
+        "title": "Agent: Remove",
+        "category": "Run Config"
       }
     ],
     "viewsContainers": {
@@ -217,7 +242,7 @@
     "viewsWelcome": [
       {
         "view": "runConfig.view",
-        "contents": "No package.json with scripts found in this workspace, and no saved configurations.\n[Add Run Configuration](command:runConfig.add)"
+        "contents": "No package.json with scripts or Spring Boot application found in this workspace, and no saved configurations.\n[Add Run Configuration](command:runConfig.add)"
       }
     ],
     "menus": {
@@ -246,12 +271,12 @@
       "view/item/context": [
         {
           "command": "runConfig.run",
-          "when": "view == runConfig.view && viewItem =~ /^(script|saved)$/",
+          "when": "view == runConfig.view && viewItem =~ /^(script|saved|spring)$/",
           "group": "inline@1"
         },
         {
           "command": "runConfig.add",
-          "when": "view == runConfig.view && viewItem =~ /^(script|project)$/",
+          "when": "view == runConfig.view && viewItem =~ /^(script|project|spring)$/",
           "group": "inline@2"
         },
         {
@@ -261,12 +286,12 @@
         },
         {
           "command": "runConfig.runParallel",
-          "when": "view == runConfig.view && viewItem =~ /^(script|saved)$/",
+          "when": "view == runConfig.view && viewItem =~ /^(script|saved|spring)$/",
           "group": "parallel@1"
         },
         {
           "command": "runConfig.saveGroup",
-          "when": "view == runConfig.view && viewItem =~ /^(script|saved)$/",
+          "when": "view == runConfig.view && viewItem =~ /^(script|saved|spring)$/",
           "group": "parallel@2"
         }
       ],
@@ -277,6 +302,26 @@
         },
         {
           "command": "runConfig.delete",
+          "when": "false"
+        },
+        {
+          "command": "runConfig.agent.list",
+          "when": "false"
+        },
+        {
+          "command": "runConfig.agent.run",
+          "when": "false"
+        },
+        {
+          "command": "runConfig.agent.add",
+          "when": "false"
+        },
+        {
+          "command": "runConfig.agent.saveGroup",
+          "when": "false"
+        },
+        {
+          "command": "runConfig.agent.remove",
           "when": "false"
         }
       ]

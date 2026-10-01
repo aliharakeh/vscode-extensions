@@ -64,6 +64,50 @@ function parseEnvLines(input) {
   return { env: Object.keys(env).length ? env : undefined };
 }
 
+// One runnable spec -> { run } with only the known fields, trimmed; or { error }.
+function validateRun(spec) {
+  if (!spec || typeof spec !== 'object' || Array.isArray(spec)) return { error: 'must be an object.' };
+  const run = {};
+  for (const key of ['name', 'bin', 'args', 'command', 'before', 'cwd']) {
+    const value = spec[key];
+    if (value === undefined) continue;
+    const ok = key === 'args' ? typeof value === 'string' || (Array.isArray(value) && value.every((a) => typeof a === 'string')) : typeof value === 'string';
+    if (!ok) return { error: key === 'args' ? '"args" must be a string or an array of strings.' : `"${key}" must be a string.` };
+    const kept = typeof value === 'string' ? value.trim() : value;
+    if (kept.length) run[key] = kept;
+  }
+  if (spec.env !== undefined) {
+    const env = spec.env;
+    if (!env || typeof env !== 'object' || Array.isArray(env) || !Object.values(env).every((v) => typeof v === 'string')) {
+      return { error: '"env" must be an object with string values.' };
+    }
+    if (Object.keys(env).length) run.env = { ...env };
+  }
+  if (!isRunnable(run)) return { error: 'needs "bin" or "command".' };
+  return { run };
+}
+
+// A runConfig.configurations entry (single command or "parallel" group) -> { config } normalized, or { error }.
+function validateConfig(input) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) return { error: 'A configuration must be an object.' };
+  const name = text(input.name);
+  if (!name) return { error: '"name" is required.' };
+
+  if (input.parallel === undefined) {
+    const { run, error } = validateRun({ ...input, name });
+    return error ? { error } : { config: run };
+  }
+  if (input.bin !== undefined || input.command !== undefined) return { error: '"parallel" cannot be combined with "bin" or "command".' };
+  if (!Array.isArray(input.parallel) || !input.parallel.length) return { error: '"parallel" must be a non-empty array.' };
+  const parallel = [];
+  for (const [i, member] of input.parallel.entries()) {
+    const { run, error } = validateRun(member);
+    if (error) return { error: `parallel[${i}] ${error}` };
+    parallel.push(run);
+  }
+  return { config: { name, parallel } };
+}
+
 // Multi-line summary for tooltips.
 function describe(spec) {
   const lines = [];
@@ -74,4 +118,4 @@ function describe(spec) {
   return lines.join('\n');
 }
 
-export { mainCommand, fullCommand, isRunnable, expandSpec, parseEnvLines, describe };
+export { mainCommand, fullCommand, isRunnable, expandSpec, parseEnvLines, describe, validateConfig };

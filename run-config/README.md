@@ -1,6 +1,6 @@
 # Run Config
 
-Adds a **Run Config** icon to the activity bar. It finds Node projects in your workspace, lists their `package.json` scripts, and runs them with the right package manager.
+Adds a **Run Config** icon to the activity bar. It finds Node projects in your workspace, lists their `package.json` scripts, and runs them with the right package manager. It also finds Spring Boot applications and runs them with Maven or Gradle.
 
 ## Node projects
 
@@ -11,6 +11,21 @@ The package manager is picked per project:
 1. The `packageManager` field in `package.json` (e.g. `pnpm@9.1.0`).
 2. The nearest lockfile, searching upward to the workspace root: `bun.lock`/`bun.lockb` → bun, `pnpm-lock.yaml` → pnpm, `yarn.lock` → yarn, `package-lock.json` → npm.
 3. Otherwise npm.
+
+## Spring Boot applications
+
+Every class annotated with `@SpringBootApplication` under `src/main/java` or `src/main/kotlin` of a Maven (`pom.xml`) or Gradle (`build.gradle[.kts]`) module is listed under **Spring Boot**. Click it, or its play button, to run it in a new terminal from the module directory:
+
+| Build tool | Command                                         |
+| ---------- | ----------------------------------------------- |
+| Maven      | `mvnw spring-boot:run`                          |
+| Gradle     | `gradlew bootRun`                               |
+
+- The wrapper (`mvnw`/`gradlew`, `.cmd`/`.bat` on Windows) is used when found in the module or a parent folder up to the workspace root; otherwise `mvn`/`gradle` from `PATH`.
+- A Maven module with several `@SpringBootApplication` classes gets one entry each, run with `-Dspring-boot.run.main-class=<class>`.
+- Gradle's `bootRun` can't take a main class on the command line, so a Gradle module gets one entry and runs the main class its build script configures.
+- Detection runs when the workspace loads and when build files or source files are added or removed. After adding the annotation to an existing file, press **Refresh**.
+- Use the **+** button on an entry (or **Run: A Spring Boot application** in the setup form) to save a customized configuration, e.g. extra arguments, environment variables or a `before` command.
 
 ## Saved run configurations
 

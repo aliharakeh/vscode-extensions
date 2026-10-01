@@ -86,12 +86,17 @@ const PAGE = String.raw`<!DOCTYPE html>
       <label for="source">Run</label>
       <select id="source">
         <option value="script">A project script</option>
+        <option value="spring">A Spring Boot application</option>
         <option value="custom">A binary or command</option>
       </select>
     </div>
-    <div class="row">
+    <div class="row" id="projectRow">
       <label for="project">Project</label>
       <select id="project"></select>
+    </div>
+    <div class="row" id="springRow" hidden>
+      <label for="spring">Application</label>
+      <select id="spring"></select>
     </div>
   </div>
 
@@ -110,7 +115,7 @@ const PAGE = String.raw`<!DOCTYPE html>
   <div class="row">
     <label for="args" id="argsLabel">Arguments</label>
     <input id="args" class="mono" autocomplete="off" spellcheck="false" placeholder="--port 3000">
-    <div class="hint">Passed as typed. Quote values that contain spaces.</div>
+    <div class="hint" id="argsHint">Passed as typed. Quote values that contain spaces.</div>
   </div>
 
   <hr>
@@ -145,9 +150,11 @@ const PAGE = String.raw`<!DOCTYPE html>
   const vscode = acquireVsCodeApi();
   const $ = (id) => document.getElementById(id);
   let projects = [];
+  let springApps = [];
   let cwdTouched = false;
 
   const selectedProject = () => projects[Number($('project').value)];
+  const selectedApp = () => springApps[Number($('spring').value)];
 
   function option(value, text) {
     const o = document.createElement('option');
@@ -157,6 +164,10 @@ const PAGE = String.raw`<!DOCTYPE html>
   }
 
   function suggestName() {
+    if ($('source').value === 'spring') {
+      const a = selectedApp();
+      return a ? a.label + ' (Spring Boot)' : '';
+    }
     if ($('source').value === 'script') {
       const p = selectedProject();
       const s = $('script').value;
@@ -167,10 +178,17 @@ const PAGE = String.raw`<!DOCTYPE html>
   }
 
   function refresh(fromProject) {
-    const isScript = $('source').value === 'script';
+    const source = $('source').value;
+    const isScript = source === 'script';
+    const isSpring = source === 'spring';
+    $('projectRow').hidden = isSpring;
+    $('springRow').hidden = !isSpring;
     $('scriptRow').hidden = !isScript;
-    $('binRow').hidden = isScript;
-    $('argsLabel').textContent = isScript ? 'Extra arguments' : 'Arguments';
+    $('binRow').hidden = source !== 'custom';
+    $('argsLabel').textContent = isScript || isSpring ? 'Extra arguments' : 'Arguments';
+    $('argsHint').textContent = isSpring
+      ? 'Added to the build command, e.g. -Dspring-boot.run.profiles=dev (Maven) or --args="--spring.profiles.active=dev" (Gradle).'
+      : 'Passed as typed. Quote values that contain spaces.';
 
     if (fromProject) {
       const p = selectedProject();
@@ -179,7 +197,7 @@ const PAGE = String.raw`<!DOCTYPE html>
       scripts.replaceChildren();
       for (const [name] of (p ? p.scripts : [])) scripts.appendChild(option(name, name));
       if (previous) scripts.value = previous;
-      if (!cwdTouched) $('cwd').value = p ? p.cwd : '';
+      if (!cwdTouched) $('cwd').value = isSpring ? (selectedApp()?.cwd ?? '') : (p ? p.cwd : '');
     }
     const p = selectedProject();
     const cmd = p && p.scripts.find((s) => s[0] === $('script').value);
@@ -195,9 +213,12 @@ const PAGE = String.raw`<!DOCTYPE html>
       const sel = $('project');
       sel.appendChild(option(-1, 'None (workspace root)'));
       projects.forEach((p, i) => sel.appendChild(option(i, p.label + (p.rel ? '  ·  ' + p.rel : '') + '  (' + p.pm + ')')));
+      springApps = msg.springApps;
+      springApps.forEach((a, i) => $('spring').appendChild(option(i, a.label + '  ·  ' + a.tool + (a.rel ? '  ·  ' + a.rel : ''))));
       const preset = msg.preset || {};
       sel.value = preset.projectIndex >= 0 ? preset.projectIndex : (projects.length ? 0 : -1);
-      $('source').value = projects.length ? 'script' : 'custom';
+      if (preset.springIndex >= 0) $('spring').value = preset.springIndex;
+      $('source').value = preset.springIndex >= 0 ? 'spring' : projects.length ? 'script' : springApps.length ? 'spring' : 'custom';
       refresh(true);
       if (preset.script) { $('script').value = preset.script; refresh(false); }
       $('name').focus();
@@ -209,7 +230,8 @@ const PAGE = String.raw`<!DOCTYPE html>
   });
 
   $('project').addEventListener('change', () => refresh(true));
-  $('source').addEventListener('change', () => refresh(false));
+  $('source').addEventListener('change', () => refresh(true));
+  $('spring').addEventListener('change', () => refresh(true));
   $('script').addEventListener('change', () => refresh(false));
   $('bin').addEventListener('input', () => refresh(false));
   $('args').addEventListener('input', () => refresh(false));
@@ -226,6 +248,7 @@ const PAGE = String.raw`<!DOCTYPE html>
         name: $('name').value.trim() || suggestName(),
         source: $('source').value,
         projectIndex: Number($('project').value),
+        springIndex: Number($('spring').value),
         script: $('script').value,
         bin: $('bin').value,
         args: $('args').value,
