@@ -11,7 +11,8 @@ dist/               all built extensions (.vsix), git-ignored
 out/                (inside each extension) esbuild bundle, git-ignored
 node_modules/       the only node_modules in the repo (npm workspaces)
 shared/             utilities shared between extensions
-<extension>/        one folder per extension, with its own package.json (the extension manifest) and skills.md
+skills/             agent skills for all extensions: SKILL.md (catalog) + one <extension>.md per extension
+<extension>/        one folder per extension, with its own package.json (the extension manifest)
 ```
 
 ## Rules
@@ -31,31 +32,35 @@ shared/             utilities shared between extensions
 - Each extension defines its own `build` script (currently `bundle` then `vsce package --no-dependencies`; the flag is required because vsce's dependency scan fails with a hoisted workspace `node_modules`), which must write its `.vsix` to the root `dist/` folder (`vsce package --out ../dist`). The root `predist` script creates `dist/`; every root `build*` script has a matching `pre` script that runs it, so a new `build:<extension>` needs a `"prebuild:<extension>": "npm run predist"` too. Always build from the root.
 
 ### Adding a new extension
-1. Create `<extension>/` with its `package.json` (manifest, `"type": "module"`), `bundle` and `build` scripts, `.vscodeignore`, and `skills.md` (see "Extension skills").
+1. Create `<extension>/` with its `package.json` (manifest, `"type": "module"`), `bundle` and `build` scripts, and `.vscodeignore`.
 2. Add `"<extension>"` to `workspaces` in the root `package.json`.
 3. Add `"build:<extension>": "npm run build -w <extension>"` and `"prebuild:<extension>": "npm run predist"` to the root `package.json` scripts.
 4. Run `npm install` at the root.
-5. Update the Layout section above if the structure changed.
+5. Add `skills/<extension>.md` and register it in `skills/SKILL.md` (see "Extension skills").
+6. Update the Layout section above if the structure changed.
 
 ### Extension skills
-- Every extension folder has its own `skills.md`. It is for AI agents only.
-- **What `skills.md` contains:**
+- All agent skills live in the root `skills/` folder, not in the extension folders. There is one skill for the whole repo, and it is for AI agents only.
+- **`skills/SKILL.md` is a catalog.** It has the skill frontmatter and one table row per extension: name, when to use it, and a link to its skill file. Keep it short. Don't put command details in it.
+- **`skills/<extension>.md` holds the details** for one extension (same name as its folder). Agents open only the file they need.
+- **Registering an extension:** every new extension gets a `skills/<extension>.md` and a row in `skills/SKILL.md` in the same change. A new extension isn't done until both exist. Renaming or removing an extension updates both too.
+- **What `skills/<extension>.md` contains:**
   - The agent commands: ID, arguments, result, failure cases.
   - The instructions an agent needs to use them: workflow, target and argument formats, the schema of any config it passes, behavior and limits.
-- **What `skills.md` must not contain:**
+- **What `skills/<extension>.md` must not contain:**
   - Commands, buttons or menus that only a human uses (sidebar actions, forms, quick picks, palette commands).
   - User-guide material: feature tours, screenshots, setup steps, how the UI works.
   - Internals an agent doesn't need to call the commands (how detection works, how command lines are built).
   - Manual workarounds such as editing settings files by hand. If an agent needs something, expose it as an agent command.
-  - `README.md` is the user-facing doc; don't duplicate it in `skills.md`.
+  - `README.md` is the user-facing doc; don't duplicate it in the skill file.
 - **Agent commands:** every extension that has features an agent could use exposes them as non-interactive agent commands, named `<extensionId>.agent.<verb>` (e.g. `runConfig.agent.run`). Rules:
   - Never open a form, quick pick, input box, or modal. Everything comes in as arguments.
   - Resolve to `{ ok: true, ...result }` or `{ ok: false, error }`, and never throw. Validate arguments and return a clear error message.
   - Declare each in `contributes.commands` (so `executeCommand` activates the extension) and hide it from the palette with a `commandPalette` entry whose `when` is `"false"`.
   - Give them the same effect as the UI, ideally sharing the same code. The UI commands remain for humans; agent commands are not a replacement for them.
-  - Document each one in `skills.md`.
-- Write `skills.md` against the real code and manifest, not from memory.
-- **Whenever an agent command or the config it accepts changes, update `skills.md` in the same change.** A new extension isn't done until its `skills.md` exists.
+  - Document each one in `skills/<extension>.md`.
+- Write the skill file against the real code and manifest, not from memory.
+- **Whenever an agent command or the config it accepts changes, update `skills/<extension>.md` in the same change.**
 
 ### shared/
 - Put code here once two or more extensions need it. Don't put extension-specific code here.
