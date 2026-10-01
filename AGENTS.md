@@ -12,7 +12,7 @@ out/                (inside each extension) esbuild bundle, git-ignored
 node_modules/       the only node_modules in the repo (npm workspaces)
 shared/             utilities shared between extensions
 skills/             agent skills for all extensions: SKILL.md (catalog) + one <extension>.md per extension
-<extension>/        one folder per extension, with its own package.json (the extension manifest)
+<extension>/        one folder per extension, with its own package.json (the extension manifest) and LICENSE.md
 ```
 
 ## Rules
@@ -26,13 +26,19 @@ skills/             agent skills for all extensions: SKILL.md (catalog) + one <e
 - The root `.gitignore` is the only one. Don't add `.gitignore` files in extension folders.
 - `.vscodeignore` is separate (it controls what goes in the `.vsix`); each extension keeps its own.
 
+### License
+- Every extension has its own `LICENSE.md` in its folder, containing the MIT license (copyright holder: Ali Harakeh, year of creation).
+- Its `package.json` sets `"license": "MIT"`.
+- Don't exclude it in `.vscodeignore`; `vsce` packages it into the `.vsix`.
+- Create it when the extension is created, by copying `run-config/LICENSE.md` and updating the year. An extension without one is not done.
+
 ### Root package.json and builds
 - The root `package.json` has one script per extension: `build:<extension>` runs `npm run build -w <extension>`.
 - `npm run build` builds every extension.
 - Each extension defines its own `build` script (currently `bundle` then `vsce package --no-dependencies`; the flag is required because vsce's dependency scan fails with a hoisted workspace `node_modules`), which must write its `.vsix` to the root `dist/` folder (`vsce package --out ../dist`). The root `predist` script creates `dist/`; every root `build*` script has a matching `pre` script that runs it, so a new `build:<extension>` needs a `"prebuild:<extension>": "npm run predist"` too. Always build from the root.
 
 ### Adding a new extension
-1. Create `<extension>/` with its `package.json` (manifest, `"type": "module"`), `bundle` and `build` scripts, and `.vscodeignore`.
+1. Create `<extension>/` with its `package.json` (manifest, `"type": "module"`), `bundle` and `build` scripts, `.vscodeignore`, and `LICENSE.md` (MIT, copy from an existing extension; set `"license": "MIT"` in the manifest).
 2. Add `"<extension>"` to `workspaces` in the root `package.json`.
 3. Add `"build:<extension>": "npm run build -w <extension>"` and `"prebuild:<extension>": "npm run predist"` to the root `package.json` scripts.
 4. Run `npm install` at the root.
